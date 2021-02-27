@@ -2,7 +2,7 @@
 layout: post
 title:  "Autotyping-Text for Game Dialogue with Reagent"
 date:   2021-02-27 10:48:00 -0700
-categories: gamedev clojurescript reagent
+categories: gamedev
 ---
 _Thanks for reading my first blog post!_
 
@@ -14,7 +14,7 @@ I recently started yet another personal game development project (which, more li
 My new project is going to be a browser-based game, which will use Reagent for the UI and Threeagent for the 3D scenes.
 
 For my first post, I want to review how I implemented a very common component: autotyping-text. Autotyping-text is often used in video games without voice-acting to make the
-text-based dialogue more dynamic and interesting to the player. We will be using Reagent to implement this component and I will provide and walk-through the code of the implementation.
+text-based dialogue more dynamic and interesting to the player. We will be using Reagent to implement this component.
 
 ![](https://www.earthboundtext.com/images/splash.gif)
 
