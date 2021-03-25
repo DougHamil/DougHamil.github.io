@@ -37,33 +37,29 @@ After reading through the documentation, I decided to try using it to replace my
 Here's a simplified version of what my character animation FSM looks like in clj-statecharts:
 
 {% highlight clojure %}
-(def lower-body-fsm {:initial :idle
-                     :states {:idle {:on {:tick [{:target :jump
-                                                  :guard airborne?}
-                                                 {:target :run
-                                                  :guard moving?}]}
-                                     :entry #(play-animation! :character/idle)}
-                              :jump {:on {:tick [{:target :run
-                                                  :guard (every-pred (complement airborne?)
-                                                                     moving?)}
-                                                 {:target :idle
-                                                  :guard (complement airborne?)}]}
-                                     :entry #(play-animation! :character/jump)}
-                              :run {:on {:tick [{:target :jump
-                                                 :guard airborne?}
-                                                {:target :idle
-                                                 :guard (complement moving?)}]}
-                                    :entry #(play-animation! :character/run)]}}})
+(def lower-body-fsm {:initial :grounded
+                     :states {:airborne {:on {:tick {:target :grounded
+                                                     :guard (complement airborne?)}}
+                                         :entry #(play-animation! :character/jump)}
+                              :grounded {:initial :idle
+                                         :on {:tick {:target :airborne
+                                                     :guard airborne?}}
+                                         :states {:idle {:on {:tick {:target :run
+                                                                     :guard moving?}}
+                                                         :entry #(play-animation! :character/idle)}
+                                                  :run {:on {:tick {:target :idle
+                                                                    :guard (complement moving?)}}
+                                                        :entry #(play-animation! :character/run)}}}}})
 
 (def upper-body-fsm {:initial :attack-idle
-                     :states {:attack-idle {:on {:tick [{:target :attack-start
-                                                         :guard attacking?}]}}
+                     :states {:attack-idle {:on {:tick {:target :attack-start
+                                                        :guard attacking?}}}
                               :attack-start {:after [{:delay 450
                                                       :target :attack-end
-                                                      :actions [#(emit-event! :attack-hit)]}]
+                                                      :actions #(emit-event! :attack-hit)}]
                                              :entry #(play-animation! :character/attack)}
-                              :attack-end {:on {:tick [{:target :attack-idle
-                                                        :guard #(animation-complete? :character/attack)}]}}}})
+                              :attack-end {:on {:tick {:target :attack-idle
+                                                       :guard #(animation-complete? :character/attack)}}}}})
 
 (def full-fsm {:id :character-animation
                :type :parallel
@@ -87,6 +83,8 @@ A few things to note about this FSM:
 * The undisclosed `emit-event!` function simply emits an event to character's event-system
 * I'm using parallel states of `:upper-body` and `:lower-body` to separate the animation layers. So the character can be in both a `:run` state for the `:lower-body` and `:attack-start` state for the `:upper-body`
 * I'm using delayed transitions to handle emitting the event after 450ms have passed since the attack animation started.
+* I'm using a nested state machine for the `:grounded` state to toggle between the `:grounded` and `:airborne` states
+
 
 Overall, I'm really happy with how well clj-statecharts worked for this. It feels much easier to manage than my previous hacky FSM system, and it will be a very useful tool to have for other aspects of my game.
 
